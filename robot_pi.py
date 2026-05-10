@@ -101,7 +101,7 @@ class RobotSerial:
         self.ser.dtr = False
         time.sleep(0.1)
         self.ser.dtr = True
-        time.sleep(2)
+        time.sleep(1)
         self.ser.reset_input_buffer()
 
         print("[Serial] Waiting for SYSTEM_READY (up to 120s for WiFi)...")
@@ -573,10 +573,33 @@ document.addEventListener('keyup', e => {
   if (btn) btn.classList.remove('active');
 });
 
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playBeep(dir) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const freqs = { 'F': 660, 'B': 330, 'L': 550, 'R': 550, 'S': 220 };
+  osc.frequency.value = freqs[dir] || 440;
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.3);
+}
+
 let geminiGoal = 'avoid obstacles and move forward';
 let geminiLoop = null;
 
 function geminiStep() {
+  initAudio();
   const btn = document.getElementById('geminiBtn');
   if (geminiLoop) {
     clearInterval(geminiLoop);
@@ -596,7 +619,10 @@ function geminiStep() {
     fetch('/api/gemini?goal=' + encodeURIComponent(geminiGoal))
       .then(r => r.json())
       .then(d => {
-        if (d.ok) log('Gemini → ' + d.direction);
+        if (d.ok) {
+          log('Gemini → ' + d.direction);
+          playBeep(d.direction);
+        }
         else { log('Gemini ERR: ' + d.error); clearInterval(geminiLoop); geminiLoop = null; btn.textContent = '🤖 Gemini'; }
       })
       .catch(e => { log('Gemini ERR: ' + e); clearInterval(geminiLoop); geminiLoop = null; btn.textContent = '🤖 Gemini'; });

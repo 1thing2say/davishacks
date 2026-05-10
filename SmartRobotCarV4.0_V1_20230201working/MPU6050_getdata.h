@@ -15,6 +15,7 @@ public:
   bool MPU6050_dveInit(void);
   bool MPU6050_calibration(void);
   bool MPU6050_dveGetEulerAngles(float *Yaw);
+  bool MPU6050_dveIsTilted(void);  // True when |pitch| or |roll| > ~15°
 
 public:
   //int16_t ax, ay, az, gx, gy, gz;

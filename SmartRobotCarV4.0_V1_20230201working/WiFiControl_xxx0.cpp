@@ -235,20 +235,15 @@ void WiFiControl_Init(void)
     Serial.print(F("[WiFi] Attempt "));
     Serial.println(attempts);
 
-    if (attempts <= 3) {
-      status = WiFi.begin(CAM_SSID, "");
-    } else {
-      status = WiFi.begin(CAM_SSID);
-    }
+    status = WiFi.begin(CAM_SSID);
 
     if (status != WL_CONNECTED) {
       if (attempts >= 10) {
         Serial.println(F("[WiFi] Could not connect to ESP32-CAM after 10 attempts"));
         Serial.println(F("[WiFi] Motor control will work but camera is unavailable"));
-        // Don't block forever — motor control should still work
         return;
       }
-      delay(3000);
+      delay(1000);
     }
   }
 

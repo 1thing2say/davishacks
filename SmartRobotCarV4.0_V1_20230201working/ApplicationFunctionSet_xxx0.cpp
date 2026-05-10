@@ -169,24 +169,25 @@ static void ApplicationFunctionSet_SmartRobotCarLinearMotionControl(SmartRobotCa
     en = directionRecord;
     yaw_So = Yaw;
   }
-  //Add proportional constant Kp to increase rebound effect
-  int R = (Yaw - yaw_So) * Kp + speed;
-  if (R > UpperLimit)
-  {
-    R = UpperLimit;
-  }
-  else if (R < 10)
-  {
-    R = 10;
-  }
-  int L = (yaw_So - Yaw) * Kp + speed;
-  if (L > UpperLimit)
-  {
-    L = UpperLimit;
-  }
-  else if (L < 10)
-  {
-    L = 10;
+  // When the car is tilted, the body-frame gyro-Z reading no longer
+  // represents true world-frame yaw — pitch/roll couples into it and
+  // produces a phantom yaw error. The proportional correction would
+  // then clamp one side's PWM to the floor (10), which is below the
+  // motor dead-zone, stopping that side's wheels entirely. Skip the
+  // correction in that case and just drive both sides at base speed.
+  bool tilted = AppMPU6050getdata.MPU6050_dveIsTilted();
+  int R, L;
+  if (tilted) {
+    R = speed;
+    L = speed;
+    yaw_So = Yaw;  // resync reference so we don't snap when tilt ends
+  } else {
+    R = (Yaw - yaw_So) * Kp + speed;
+    if (R > UpperLimit)      R = UpperLimit;
+    else if (R < 10)         R = 10;
+    L = (yaw_So - Yaw) * Kp + speed;
+    if (L > UpperLimit)      L = UpperLimit;
+    else if (L < 10)         L = 10;
   }
   if (direction == Forward) //Forward
   {
