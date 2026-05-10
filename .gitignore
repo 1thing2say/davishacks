@@ -1,0 +1,20 @@
+# ELEGOO kit folders (manuals, datasheets, tutorials)
+01 ReadMeFirst/
+02 Manual & Main Code & APP/
+03 Tutorial & Code/
+04 Related chip information/
+
+# Secrets
+.env
+
+# Captured images
+capture_*.jpg
+capture_*.bin
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
