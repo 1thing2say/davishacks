@@ -1,14 +1,3 @@
-# ELEGOO Smart Robot Car V4.0 — Python Controller
-
-Web-based controller for the ELEGOO Smart Robot Car V4.0 with Gemini AI autonomous driving.
-
-## Requirements
-
-- Python 3.10+
-- Arduino UNO R4 WiFi flashed with `SmartRobotCarV4.0_V1_20230201working`
-- ELEGOO ESP32-WROVER camera module (optional — needed for Gemini AI mode)
-- Gemini API key (optional — needed for Gemini AI mode)
-
 ## Install
 
 ```bash
