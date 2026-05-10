@@ -4,6 +4,6 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 echo ""
-cp .env.example .env
+[ -f .env ] || cp .env.example .env
 export $(cat .env) && python3 robot_pi.py
 exec bash
