@@ -598,37 +598,48 @@ function playBeep(dir) {
 let geminiGoal = 'avoid obstacles and move forward';
 let geminiLoop = null;
 
+const GEMINI_GAP_MS = 150;  // delay between cycles — lower = more responsive
+
+function geminiStop(btn, reason) {
+  geminiLoop = false;
+  btn.textContent = '🤖 Gemini';
+  if (reason) log(reason);
+  sendCmd('S');
+}
+
 function geminiStep() {
   initAudio();
   const btn = document.getElementById('geminiBtn');
   if (geminiLoop) {
-    clearInterval(geminiLoop);
-    geminiLoop = null;
-    btn.textContent = '🤖 Gemini';
-    log('Gemini loop stopped');
-    sendCmd('S');
+    geminiStop(btn, 'Gemini loop stopped');
     return;
   }
   const goal = prompt('Goal for Gemini?', geminiGoal);
   if (!goal) return;
   geminiGoal = goal;
+  geminiLoop = true;
   btn.textContent = '⏹ Stop AI';
   log('Gemini loop started: ' + goal);
 
   function step() {
+    if (!geminiLoop) return;
+    const t0 = performance.now();
     fetch('/api/gemini?goal=' + encodeURIComponent(geminiGoal))
       .then(r => r.json())
       .then(d => {
+        if (!geminiLoop) return;
         if (d.ok) {
-          log('Gemini → ' + d.direction);
+          const ms = Math.round(performance.now() - t0);
+          log('Gemini → ' + d.direction + ' (' + ms + 'ms)');
           playBeep(d.direction);
+          setTimeout(step, GEMINI_GAP_MS);
+        } else {
+          geminiStop(btn, 'Gemini ERR: ' + d.error);
         }
-        else { log('Gemini ERR: ' + d.error); clearInterval(geminiLoop); geminiLoop = null; btn.textContent = '🤖 Gemini'; }
       })
-      .catch(e => { log('Gemini ERR: ' + e); clearInterval(geminiLoop); geminiLoop = null; btn.textContent = '🤖 Gemini'; });
+      .catch(e => geminiStop(btn, 'Gemini ERR: ' + e));
   }
   step();
-  geminiLoop = setInterval(step, 2500);
 }
 
 function capture() {
